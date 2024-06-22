@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sol-Tak-Toe</title>    
+    <link rel="shortcut icon" type="image/x-icon" href="res/circle.svg">
+    <link rel="stylesheet" href="style.css">
+    <script src="lib/buffer.js"></script>
+    <script>window.Buffer = window.buffer.Buffer;</script>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/base-58@0.0.1/Base58.min.js" defer></script>
+    <script src="src/app.mjs" type="module"></script>
+</head>
+<body>
+
+<header>
+    <a href="http://localhost:3000/"><img src="res/Sol-Tac-Toe.svg" alt="Site logo"></a>
+    <button id="dp" class="off">
+        <canvas id="profilePic" width="28" height="28"></canvas><span id="username"></span>
+    </button>
+</header>
+
+<div id="login">
+    <button id="walletConnectButton">Connect Devnet Wallet</button>
+</div>
+
+<form id="signup" class="off">
+    <h3>Account doesn't exist. Create one?</h3>
+    <input type="text" name="username" placeholder="Display name"><input type="submit" value="Yes, sign me up">
+</form>
+
+<main id="main" class="off">
+    <section id="online">
+        <span>ONLINE</span>
+        <ul id="playerList"></ul>
+    </section><section>
+        <table id="gameTable">
+            <tr>
+                <td></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td></td><td></td><td></td>
+            </tr>
+            <tr>
+                <td></td><td></td><td></td>
+            </tr>
+        </table>
+    </section>
+</main>
+    
+</body>
+</html>

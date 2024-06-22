@@ -1,0 +1,156 @@
+:root {
+    --header-height: 60px;
+    --box-size: 80px;
+    --img-size: 46px;
+    --border: 5px solid #c0c0c0;
+    --padding: 30px;
+}
+
+.off {
+    display: none;
+}
+
+* {
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    font-size: 16px;
+    background-color: #ededed;
+}
+
+header {
+    position: relative;
+    padding: 0px var(--padding);
+    height: var(--header-height);
+    border-bottom: 2px solid #d5d5d5;
+}
+
+header > * {
+    display: inline-block;
+}
+
+header > a > img {
+    position: absolute;
+    margin: auto 0px;
+    height: 36px;
+    top: 0px;
+    bottom: 0px;
+}
+
+#dp {
+    position: absolute;
+    margin: auto 0px;
+    height: 30px;
+    top: 0px;
+    bottom: 0px;
+    right: var(--padding);
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#dp > canvas {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#dp > span {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+#login, #signup {
+    padding: 200px 0px;
+    text-align: center;
+}
+
+#login > button, #signup > input[type="submit"] {
+    margin-top: 20px;
+    padding: 16px 26px;
+    font-size: 16px;
+    border-radius: 5px;
+    color: white;
+    background-color: black;
+    cursor: pointer;
+}
+#signup > input[type="text"] {
+    margin-top: 20px;
+    margin-right: 14px;
+    padding: 16px 14px;
+    width: 280px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #c0c0c0;
+}
+
+main {
+    position: absolute;
+    display: flex;
+    width: 100%;
+    top: var(--header-height);
+    bottom: 0px;
+}
+
+#online {
+    width: 360px;
+    border-right: 1px solid #d5d5d5;
+    overflow-y: scroll;
+}
+
+main > section:last-child {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+#online > span {
+    display: block;
+    margin: 20px var(--padding) 5px var(--padding);
+    font-weight: bold;
+    font-size: 13px;
+    color: #404040;
+}
+
+#playerList {
+    list-style: none;
+}
+
+#playerList > li {
+    font-size: 14px;
+    padding: 8px var(--padding);
+    color: #808080;
+    cursor: pointer;
+}
+
+#playerList > li:hover {
+    color: black;
+}
+
+#gameTable {
+    border-collapse: collapse;
+}
+
+#gameTable td {
+    width: var(--box-size);
+    height: var(--box-size);
+    text-align: center;
+    cursor: pointer;
+}
+
+#gameTable td + td {
+    border-left: var(--border);
+}
+
+#gameTable tr + tr {
+    border-top: var(--border);
+}
+
+#gameTable td > img {
+    width: var(--img-size);
+}
