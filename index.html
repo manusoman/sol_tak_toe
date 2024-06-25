@@ -9,8 +9,10 @@
     <link rel="stylesheet" href="style.css">
     <script src="lib/buffer.js"></script>
     <script>window.Buffer = window.buffer.Buffer;</script>
-    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/base-58@0.0.1/Base58.min.js" defer></script>
+    <script src="lib/index.iife.min.js" defer></script>
+    <script src="lib/Base58.min.js" defer></script>
+    <!-- <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/base-58@0.0.1/Base58.min.js" defer></script> -->
     <script src="src/app.mjs" type="module"></script>
 </head>
 <body>
@@ -18,8 +20,16 @@
 <header>
     <a href="http://localhost:3000/"><img src="res/Sol-Tac-Toe.svg" alt="Site logo"></a>
     <button id="dp" class="off">
-        <canvas id="profilePic" width="28" height="28"></canvas><span id="username"></span>
+        <img id="profilePic" class="dpPic" alt="Profile picture"><span id="username"></span>
     </button>
+
+    <div id="profileData" class="off">
+        <div>
+            <span id="userId"></span>
+            <button id="closeAccBtn">Close Account</button>
+            <button id="disconnectBtn">Disconnect</button>
+        </div>
+    </div>
 </header>
 
 <div id="login">
@@ -34,9 +44,10 @@
 <main id="main" class="off">
     <section id="online">
         <span>ONLINE</span>
-        <ul id="playerList"></ul>
+        <ul id="opponentList"></ul>
     </section><section>
-        <table id="gameTable">
+
+        <table id="gameTable" class="off">
             <tr>
                 <td></td><td></td><td></td>
             </tr>
@@ -47,6 +58,13 @@
                 <td></td><td></td><td></td>
             </tr>
         </table>
+
+        <div id="opponentData" class="off">
+            <h2 id="opponentName"></h2>
+            <span id="opponentAccId"></span>
+            <button id="challengeButton">Challenge</button>
+        </div>
+
     </section>
 </main>
     

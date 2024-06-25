@@ -1,9 +1,8 @@
 import {program, user, player1, player2} from './keys.mjs';
 
-const https = 'https://solana-devnet.g.alchemy.com/v2/t6gSRDGAMPhZKHCKujDuPU9oq9ob2yWO';
-const webSocket = 'wss://solana-devnet.g.alchemy.com/v2/t6gSRDGAMPhZKHCKujDuPU9oq9ob2yWO';
+// const https = 'https://solana-devnet.g.alchemy.com/v2/t6gSRDGAMPhZKHCKujDuPU9oq9ob2yWO';
 
-const connection = new solanaWeb3.Connection(https);
+const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
 const programId = program.publicKey;
 const programWallet = new solanaWeb3.PublicKey('J7VSmH7DpiNT7xMR77LnNVkBhkVwvS4h68o3k75FpNKq');
 
@@ -21,14 +20,18 @@ function initAccount(player) {
     playerAcc = getPlayerAccount(player.publicKey)[0];
 }
 
+export function test(accId, func) {
+    return connection.onAccountChange(accId, func, 'finalized');
+}
 
-export async function signUpPlayer(player, name) {
-    const pda = getPlayerAccount(player.publicKey)[0];
+
+export async function signUpPlayer(playerId, name) {
+    const pda = getPlayerAccount(playerId)[0];
 
     const ix = new solanaWeb3.TransactionInstruction({
         data: new Uint8Array([0, ...new TextEncoder().encode(name)]),
         keys: [
-            {isSigner: true, isWritable: false, pubkey: player.publicKey},
+            {isSigner: true, isWritable: false, pubkey: playerId},
             {isSigner: false, isWritable: true, pubkey: pda},
             {isSigner: false, isWritable: false, pubkey: solanaWeb3.SystemProgram.programId}
         ],
@@ -36,7 +39,9 @@ export async function signUpPlayer(player, name) {
     });
 
     const tx = new solanaWeb3.Transaction().add(ix);
-    return solanaWeb3.sendAndConfirmTransaction(connection, tx, [player], {commitment: 'finalized'});
+    tx.feePayer = playerId;
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    return window.solana.signAndSendTransaction(tx, {preflightCommitment: 'finalized'});
 }
 
 
@@ -60,11 +65,7 @@ async function closePlayerAccount(player) {
 }
 
 
-function sendGameInvite(player, opponentWallet) {
-    const wallet = player.publicKey;
-    const playerAcc = getPlayerAccount(wallet)[0];
-    const opponentAcc = getPlayerAccount(opponentWallet)[0];
-
+export async function sendGameInvite(playerId, playerAcc, opponentAcc) {
     console.log('Sending game invite...');
     console.log('player: ', playerAcc.toBase58());
     console.log('opponent: ', opponentAcc.toBase58());
@@ -72,7 +73,7 @@ function sendGameInvite(player, opponentWallet) {
     const ix = new solanaWeb3.TransactionInstruction({
         data: new Uint8Array([3]),
         keys: [
-            {isSigner: true, isWritable: false, pubkey: player.publicKey},
+            {isSigner: true, isWritable: false, pubkey: playerId},
             {isSigner: false, isWritable: true, pubkey: playerAcc},
             {isSigner: false, isWritable: true, pubkey: opponentAcc}
         ],
@@ -80,7 +81,9 @@ function sendGameInvite(player, opponentWallet) {
     });
 
     const tx = new solanaWeb3.Transaction().add(ix);
-    return solanaWeb3.sendAndConfirmTransaction(connection, tx, [player]);
+    tx.feePayer = playerId;
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    return window.solana.signAndSendTransaction(tx, {preflightCommitment: 'finalized'});
 }
 
 
@@ -160,4 +163,23 @@ function transferSol(dest, sols) {
 
 function addSol(programId, sols) {
     return connection.requestAirdrop(programId, sols * 10 ** 9);
+}
+
+export async function getOnlinePlayers() {
+    const accounts = await connection.getProgramAccounts(programId, {
+        commitment: 'finalized',
+        filters: [{
+            memcmp: {
+                bytes: Base58.encode(new Uint8Array([1])),
+                offset: 20
+            }
+        }]
+    });
+
+    const decoder = new TextDecoder();
+
+    return accounts.map(acc => ({
+        name: decoder.decode(acc.account.data.subarray(0, 20)),
+        id: acc.pubkey
+    }));
 }

@@ -1,3 +1,22 @@
 import {player1} from './keys.mjs';
 
-export const connectWallet = () => player1;
+const wallet = (() => {
+    if ('phantom' in window) {
+        const provider = window.phantom?.solana;
+        if (provider?.isPhantom) return provider;
+
+        alert('Phantom wallet is not installed');
+    }
+
+    window.open('https://phantom.app/', '_blank');
+})();
+
+export const connectWallet = () => {
+    if (!wallet) {
+        const msg = 'No wallet found!';
+        alert(msg);
+        throw msg;
+    }
+
+    return wallet.connect();
+}
