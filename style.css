@@ -107,6 +107,8 @@ header > a > img {
 #login > button,
 #signup > input[type="submit"],
 #challengeButton,
+#acceptChallengeButton,
+#declineChallengeButton,
 #closeAccBtn,
 #disconnectBtn {
     margin-top: 20px;
@@ -180,6 +182,22 @@ main > section:last-child {
     margin-right: 10px;
 }
 
+#gamePanel {
+    text-align: center;
+}
+
+#turnSignal {
+    display: inline-block;
+    margin: 20px 0px;
+    padding: 5px 10px;
+    color: transparent;
+}
+
+#turnSignal.show {
+    color: white;
+    background-color: #5dc45d;
+}
+
 #gameTable {
     border-collapse: collapse;
 }
@@ -203,11 +221,11 @@ main > section:last-child {
     width: var(--img-size);
 }
 
-#opponentData {
+#opponentData, #gameInviteData {
     text-align: center;
 }
 
-#opponentData > span {
+#opponentData > span, #gameInviteData > span {
     display: block;
     margin: 10px 0px 20px 0px;
     font-size: 13px;

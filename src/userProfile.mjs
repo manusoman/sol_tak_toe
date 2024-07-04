@@ -1,4 +1,5 @@
 import { putProfilePic } from './imgGenerator.mjs';
+import { closePlayerAccount } from './chain.mjs';
 
 const DP = document.getElementById('dp');
 const PROFILE_PIC = document.getElementById('profilePic');
@@ -8,6 +9,8 @@ const PROFILE_DATA = document.getElementById('profileData');
 const USER_ID = document.getElementById('userId');
 const CLOSE_ACC_BTN = document.getElementById('closeAccBtn');
 const DISCONNECT_BTN = document.getElementById('disconnectBtn');
+
+export const PLAYER = {};
 
 
 DP.onclick = () => {
@@ -20,14 +23,28 @@ PROFILE_DATA.onclick = e => {
     }
 };
 
+CLOSE_ACC_BTN.onclick = async () => {
+    try {
+        let res = await closePlayerAccount();
+        console.log(res);
+        PROFILE_DATA.className = 'off';
+        alert('Your account has been closed');
+    } catch (err) {
+        console.error(err);
+    }
+};
 
-export function loadProfile(accId, data) {
+
+export function loadProfile(pId, accId, seed, data) {
     const idStr = accId.toBase58();
+
+    PLAYER.playerId = pId;
+    PLAYER.playerAccId = accId;
+    PLAYER.bumpSeed = seed;
 
     putNameAndPicture(data.slice(0, 20), accId);
     DP.className = '';
     USER_ID.textContent = idStr;
-    console.log(`User connected: ${idStr}`);
 }
 
 function putNameAndPicture(data, accID) {

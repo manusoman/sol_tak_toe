@@ -1,8 +1,9 @@
 const programKeyData = [
-    226,239,191,112,161,0,35,136,252,90,47,33,158,2,77,92,
-    155,24,240,65,239,238,110,225,209,120,6,253,33,142,214,
-    67,101,133,65,152,82,233,223,47,130,147,16,95,102,172,
-    167,40,86,217,44,239,194,70,110,149,230,237,44,69,29,20,4,226
+    192,220,192,42,72,176,155,213,186,134,184,124,102,49,
+    199,86,170,99,140,10,55,54,82,218,171,165,170,240,74,
+    24,164,106,146,46,52,1,230,162,252,216,148,110,104,
+    249,195,140,190,63,199,72,65,235,245,114,116,24,70,
+    98,63,26,0,248,151,151
 ];
 
 const userKeyData = [
@@ -28,8 +29,13 @@ const player2KeyData = [
     82,233,184,197,28,110,204,121,199,117,252,64,173,55,250
 ];
 
+const one = '5s7kWgKYT45R8iVgtVg8JPiQHaAa4vquG4LxsDnXfEHmajS73CYXUtuQFGPb9hiHdsTGre7S7CSRMGfHgnAfKwBB';
+const two = '4kzisaya1u3GGiebbEpuhsRMHTcVNt8jCCxGhx4B7LF2zTfr11S8n5GMukzQNEFn9aAULUtv91brTMYksJyNTfAL';
+
 
 export const program = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(programKeyData));
 export const user = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(userKeyData));
-export const player1 = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(player1KeyData));
-export const player2 = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(player2KeyData));
+export const player1 = solanaWeb3.Keypair.fromSecretKey(Base58.decode(one));
+export const player2 = solanaWeb3.Keypair.fromSecretKey(Base58.decode(two));
+
+console.log('Program id:', program.publicKey.toBase58());

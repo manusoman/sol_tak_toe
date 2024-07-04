@@ -47,22 +47,33 @@
         <ul id="opponentList"></ul>
     </section><section>
 
-        <table id="gameTable" class="off">
-            <tr>
-                <td></td><td></td><td></td>
-            </tr>
-            <tr>
-                <td></td><td></td><td></td>
-            </tr>
-            <tr>
-                <td></td><td></td><td></td>
-            </tr>
-        </table>
+        <div id="gamePanel" class="off">
+            <span id="turnSignal">Your turn</span>
+            <table id="gameTable">
+                <tr>
+                    <td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td></td><td></td><td></td>
+                </tr>
+            </table>
+        </div>
 
         <div id="opponentData" class="off">
             <h2 id="opponentName"></h2>
             <span id="opponentAccId"></span>
             <button id="challengeButton">Challenge</button>
+        </div>
+
+        <div id="gameInviteData" class="off">
+            <h1>Game Invite!</h1>
+            <h2 id="challengerName"></h2>
+            <span id="challengerAccId"></span>
+            <button id="acceptChallengeButton">Accept Challenge</button>
+            <button id="declineChallengeButton">Decline Challenge</button>
         </div>
 
     </section>

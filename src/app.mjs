@@ -1,29 +1,16 @@
 import { connectWallet } from './wallet.mjs';
-import { getPlayerAccData, signUpPlayer, sendGameInvite } from './chain.mjs';
+import { getPlayerAccData, getAccDataWithAccAddress, signUpPlayer, monitorAccount } from './chain.mjs';
 import { loadProfile } from './userProfile.mjs';
 import { loadOpponents } from './opponentPanel.mjs';
+import { loadChallengePanel, closeChallengePanel } from './challengePanel.mjs';
+import { closeOpponentProfile } from './opponentProfile.mjs';
+import { initGame } from './game.mjs';
 
 const LOGIN = document.getElementById('login');
 const SIGN_UP = document.getElementById('signup');
 const MAIN = document.getElementById('main');
-const GAME_BOARD = document.getElementById('gameTable');
-
-const OPPONENT_DATA = document.getElementById('opponentData');
-const OPPONENT_NAME = document.getElementById('opponentName');
-const OPPONENT_ID = document.getElementById('opponentAccId');
-const CHALLENGE = document.getElementById('challengeButton');
-
-const GAME_BOXES = Array.from(GAME_BOARD.getElementsByTagName('tr')).map(tr => Array.from(tr.getElementsByTagName('td')));
-const IMAGES = await loadImages(['res/circle.svg', 'res/cross.svg']);
-const GAME = Array(3).fill(true).map(() => Array(3).fill(NaN));
 
 let playerId;
-let playerAccId;
-let chosenOpponent;
-let onGoingGame = false;
-
-let you; // 0 or 1
-let opponent; // 0 or 1
 
 
 
@@ -31,10 +18,11 @@ let opponent; // 0 or 1
 
 document.getElementById('walletConnectButton').onclick = async () => {
     playerId = (await connectWallet()).publicKey;
-    const addr = playerId.toBase58();
-    const [id, data] = await getPlayerAccData(addr);
+    console.log('User connected:', playerId.toBase58());
 
-    playerAccId = id;
+    const addr = playerId.toBase58();
+    const [playerAccId, bumpSeed, data] = await getPlayerAccData(addr);
+
     LOGIN.className = 'off';
 
     if (!data) {
@@ -42,7 +30,7 @@ document.getElementById('walletConnectButton').onclick = async () => {
         return;
     }
 
-    loadAccount(id, data);
+    loadAccount(playerId, playerAccId, bumpSeed, data);
     MAIN.className = '';
 };
 
@@ -70,7 +58,7 @@ SIGN_UP.onsubmit = async e => {
     
     alert('Your account has been created! Enjoy gaming.');
 
-    const [playerAccId, data] = await getPlayerAccData(playerId.toBase58());
+    const [playerAccId, bumpSeed, data] = await getPlayerAccData(playerId.toBase58());
 
     if (!data) {
         const msg = 'Error creating account. Try again after some time';
@@ -78,108 +66,49 @@ SIGN_UP.onsubmit = async e => {
         throw msg;
     }
 
-    loadAccount(playerAccId, data);
+    loadAccount(playerId, playerAccId, bumpSeed, data);
     SIGN_UP.className = 'off';
     MAIN.className = '';
-};
-
-CHALLENGE.onclick = () => {
-    if (!chosenOpponent) return;
-    sendGameInvite(playerId, playerAccId, chosenOpponent);
 };
 
 // Functions ***********************************************
 
 
-function loadAccount(accId, data) {
-    loadProfile(accId, data);
+function loadAccount(playerId, accId, bumpSeed, data) {
+    console.log('Loading acc:', accId.toBase58());
+    loadProfile(playerId, accId, bumpSeed, data);
     loadOpponents(accId);
-    init();
+    monitorAccount(accId, trackChanges);
 }
 
-function init() {
-    [you, opponent] = Math.round(Math.random()) ? [0, 1] : [1, 0];
+function trackChanges(accInfo) {
+    const {data} = accInfo;
+    const opponentId = new solanaWeb3.PublicKey(data.subarray(22));
 
-    GAME_BOXES.forEach((arr, row) => {
-        arr.forEach((box, col) => {
-            box.onclick = () => play(row, col, true);
-        });
-    });
-}
+    switch (data[21]) {
+        case 0:
+            closeOpponentProfile();
+            closeChallengePanel();
+            break;
 
-function play(row, col, self) {
-    if (!isNaN(GAME[row][col])) return;
-    
-    const player = self ? you : opponent;
-    GAME[row][col] = player;
-    GAME_BOXES[row][col].appendChild(IMAGES[player].cloneNode());
+        case 1:
+            getPlayerName(opponentId)
+            .then(opponentName => loadChallengePanel(opponentId, opponentName));
+            break;
 
-    // Evaluate game
-    let rowSum = 0;
-    let colSum = 0;
+        case 3:
+            closeOpponentProfile();
+            closeChallengePanel();
 
-    for (let i = 0; i < 3; ++i) {
-        rowSum += GAME[row][i];
-        colSum += GAME[i][col];
-    }
-
-    if (rowSum === player * 3) {
-        alert(self ? 'You won!' : 'You lost.');
-        return;
-    }
-    
-    if (colSum === player * 3) {
-        alert(self ? 'You won!' : 'You lost.');
-        return;
-    }
-
-    // Diagonal sum
-    let d1Sum = 0;
-    let d2Sum = 0;
-
-    for (let i = 0; i < 3; ++i) {
-        d1Sum += GAME[i][i];
-        d2Sum += GAME[2 - i][i];
-    }
-
-    if (d1Sum === player * 3) {
-        alert(self ? 'You won!' : 'You lost.');
-        return;
-    }
-    
-    if (d2Sum === player * 3) {
-        alert(self ? 'You won!' : 'You lost.');
-        return;
-    }
-}
-
-function clearGame() {
-    GAME.length = 0;
-
-    GAME_BOXES.forEach(arr => {
-        GAME.push(Array(3).fill(NaN));
-        arr.forEach(box => box.innerHTML = '');
-    });
-}
-
-function loadImages(paths) {
-    return new Promise(resolve => {
-        let count = 0;
-        const images = paths.map(path => {
-            const img = new Image();
-            img.src = path;
-            return img;
-        });
+            getPlayerName(opponentId)
+            .then(opponentName => initGame(opponentId, opponentName));
+            break;
         
-        for (const img of images) {
-            img.onload = () => (++count === 2) && resolve(images);
-        }
-    });
+        default:
+    }
 }
 
-function loadPlayer(id, name) {
-    chosenOpponent = id;
-    OPPONENT_NAME.textContent = name;
-    OPPONENT_ID.textContent = id.toBase58();
-    OPPONENT_DATA.className = '';
+async function getPlayerName(accId) {
+    const accData = await getAccDataWithAccAddress(accId);
+    return new TextDecoder().decode(accData.slice(0, 20));
 }

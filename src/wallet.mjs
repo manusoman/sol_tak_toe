@@ -11,12 +11,14 @@ const wallet = (() => {
     window.open('https://phantom.app/', '_blank');
 })();
 
-export const connectWallet = () => {
+export const connectWallet = async () => {
     if (!wallet) {
         const msg = 'No wallet found!';
         alert(msg);
         throw msg;
     }
 
-    return wallet.connect();
+    if (await wallet.connect()) {
+        return wallet;
+    }
 }
