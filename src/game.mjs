@@ -9,6 +9,9 @@ const GAME = Array(3).fill(true).map(() => Array(3).fill(NaN));
 
 let gameSubScriptionId = null;
 let gameAcc = null;
+let yourTurn;
+let noOfMoves = 0;
+
 let you; // 0 or 1
 let opponent; // 0 or 1
 
@@ -16,43 +19,71 @@ let opponent; // 0 or 1
 GAME_BOXES.forEach((arr, row) => {
     arr.forEach((box, col) => {
         box.onclick = () => {
-            play(row, col, you);
-            TURN_SIGNAL.className = '';
-            makeAMove(1 + col + row * 3, gameAcc);
+            if (yourTurn && gameAcc) {
+                ++noOfMoves;
+                makeAMove(col + row * 3, gameAcc);
+                play(row, col, you);
+                evaluateGame(row, col, you);
+                hideTurnSignal();
+            }
         }
     });
 });
 
 export async function initGame(opponentId, opponentName) {
     gameAcc = getGameAccount(opponentId)[0];
-    gameSubScriptionId = monitorAccount(gameAcc, playOpponent);
+    gameSubScriptionId = monitorAccount(gameAcc, accInfo => updateGame(accInfo.data));
 
     const data = await getAccDataWithAccAddress(gameAcc);
-    const opponentFirst = isSameKey(data.subarray(0, 32), opponentId.toBytes());
+    const firstPlayer = isSameKey(data.subarray(32, 64), opponentId.toBytes());
 
-    if (opponentFirst) {
-        you = 1;
-        opponent = 0;
-    } else {
+    if (firstPlayer) {
         you = 0;
         opponent = 1;
-        TURN_SIGNAL.className = 'show';
+        showTurnSignal();
+    } else {
+        you = 1;
+        opponent = 0;
+        hideTurnSignal();
     }
 
+    data[64] && updateGame(data);
     GAME_PANEL.className = '';
 }
 
-function playOpponent(accInfo) {
-    const {data} = accInfo;
+function updateGame(data) {
+    const status = data[64];
 
     console.log('Move detected...');
     console.log(data);
-    
-    const status = data[64];
-    if (status < 1 || status > 9 || status % 2 === you) return;
 
-    const box = data[64 + status] - 1;
-    play(Math.floor(box / 3), box % 3, opponent);
+    if (status >= 1) {
+        const limit = status > 9 ? 9 : status;
+
+        for (let i = noOfMoves; i < limit; ++i) {
+            const boxIdx = data[65 + i];
+            const row = Math.floor(boxIdx / 3);
+            const col = boxIdx % 3;
+            const player = (i + 1) % 2 === you ? opponent : you;
+
+            play(row, col, player);
+
+            (i === limit - 1) &&
+            !evaluateGame(row, col, player) &&
+            (player === opponent) ?
+            showTurnSignal() : hideTurnSignal();
+        }
+
+        noOfMoves = limit;
+    }
+    
+    if (status === 10) {
+
+    } else if (status === 11) {
+
+    } else if (status === 12) {
+
+    }
 }
 
 function play(row, col, player) {
@@ -60,8 +91,9 @@ function play(row, col, player) {
     
     GAME[row][col] = player;
     GAME_BOXES[row][col].appendChild(IMAGES[player].cloneNode());
+}
 
-    // Evaluate game
+function evaluateGame(row, col, player) {
     let rowSum = 0;
     let colSum = 0;
 
@@ -71,11 +103,13 @@ function play(row, col, player) {
     }
 
     if (rowSum === player * 3) {
-        return endGame(player);
+        endGame(player);
+        return true;
     }
     
     if (colSum === player * 3) {
-        return endGame(player);
+        endGame(player);
+        return true;
     }
 
     // Diagonal sum
@@ -88,23 +122,27 @@ function play(row, col, player) {
     }
 
     if (d1Sum === player * 3) {
-        return endGame(player);
+        endGame(player);
+        return true;
     }
     
     if (d2Sum === player * 3) {
-        return endGame(player);
+        endGame(player);
+        return true;
     }
+
+    return false;
 }
 
 function endGame(player) {
-    unMonitorAccount(gameSubScriptionId);
+    hideTurnSignal();
+    alert(player === you ? 'You won!' : 'You lost.');
+    // GAME_PANEL.className = 'off';
+    // clearGame();
 
+    unMonitorAccount(gameSubScriptionId);
     gameSubScriptionId = null;
     gameAcc = null;
-
-    alert(player === you ? 'You won!' : 'You lost.');
-    GAME_PANEL.className = 'off';
-    clearGame();
 }
 
 function clearGame() {
@@ -129,4 +167,14 @@ function loadImages(paths) {
             img.onload = () => (++count === 2) && resolve(images);
         }
     });
+}
+
+function showTurnSignal() {
+    yourTurn = true;
+    TURN_SIGNAL.className = 'show';
+}
+
+function hideTurnSignal() {
+    yourTurn = false;
+    TURN_SIGNAL.className = '';
 }

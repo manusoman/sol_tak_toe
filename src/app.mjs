@@ -78,11 +78,11 @@ function loadAccount(playerId, accId, bumpSeed, data) {
     console.log('Loading acc:', accId.toBase58());
     loadProfile(playerId, accId, bumpSeed, data);
     loadOpponents(accId);
-    monitorAccount(accId, trackChanges);
+    monitorAccount(accId, accInfo => trackChanges(accInfo.data));
+    trackChanges(data);
 }
 
-function trackChanges(accInfo) {
-    const {data} = accInfo;
+function trackChanges(data) {
     const opponentId = new solanaWeb3.PublicKey(data.subarray(22));
 
     switch (data[21]) {
@@ -110,5 +110,6 @@ function trackChanges(accInfo) {
 
 async function getPlayerName(accId) {
     const accData = await getAccDataWithAccAddress(accId);
-    return new TextDecoder().decode(accData.slice(0, 20));
+    const name = new TextDecoder().decode(accData.slice(0, 20));
+    return name.trim();
 }

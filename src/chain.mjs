@@ -40,7 +40,7 @@ export async function closePlayerAccount() {
     const { playerId, playerAccId } = PLAYER;
 
     const ix = new solanaWeb3.TransactionInstruction({
-        data: new Uint8Array([6]),
+        data: new Uint8Array([7]),
         keys: [
             {isSigner: true, isWritable: false, pubkey: playerId},
             {isSigner: false, isWritable: true, pubkey: playerAccId}
@@ -97,14 +97,33 @@ export async function answerGameInvite(opponentAcc, answer) {
 }
 
 
-export async function makeAMove(box, gameAcc) {
-    const { playerId } = PLAYER;
+export async function makeAMove(boxIdx, gameAcc) {
+    const { playerId, playerAccId } = PLAYER;
 
     const ix = new solanaWeb3.TransactionInstruction({
-        data: new Uint8Array([5, box]),
+        data: new Uint8Array([5, boxIdx]),
         keys: [
             {isSigner: true, isWritable: false, pubkey: playerId},
-            {isSigner: false, isWritable: true, pubkey: gameAcc},
+            {isSigner: false, isWritable: false, pubkey: playerAccId},
+            {isSigner: false, isWritable: true, pubkey: gameAcc}
+        ],
+        programId
+    });
+
+    const tx = new solanaWeb3.Transaction().add(ix);
+    return signAndSend(tx, playerId);
+}
+
+
+export async function closeGameAccount(gameAcc) {
+    const { playerId, playerAccId } = PLAYER;
+
+    const ix = new solanaWeb3.TransactionInstruction({
+        data: new Uint8Array([6]),
+        keys: [
+            {isSigner: true, isWritable: false, pubkey: playerId},
+            {isSigner: false, isWritable: false, pubkey: playerAccId},
+            {isSigner: false, isWritable: true, pubkey: gameAcc}
         ],
         programId
     });
