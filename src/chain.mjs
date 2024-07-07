@@ -40,7 +40,7 @@ export async function closePlayerAccount() {
     const { playerId, playerAccId } = PLAYER;
 
     const ix = new solanaWeb3.TransactionInstruction({
-        data: new Uint8Array([7]),
+        data: new Uint8Array([8]),
         keys: [
             {isSigner: true, isWritable: false, pubkey: playerId},
             {isSigner: false, isWritable: true, pubkey: playerAccId}
@@ -74,21 +74,19 @@ export async function sendGameInvite(opponentAcc) {
 }
 
 
-export async function answerGameInvite(opponentAcc, answer) {
+export async function acceptGameInvite(opponentAcc) {
     const { playerId, playerAccId } = PLAYER;
     const gameAcc = getGameAccount(opponentAcc)[0];
 
-    const keyList = [
-        {isSigner: true, isWritable: false, pubkey: playerId},
-        {isSigner: false, isWritable: true, pubkey: playerAccId},
-        {isSigner: false, isWritable: true, pubkey: opponentAcc},
-        {isSigner: false, isWritable: true, pubkey: gameAcc},
-        {isSigner: false, isWritable: false, pubkey: solanaWeb3.SystemProgram.programId}
-    ];
-
     const ix = new solanaWeb3.TransactionInstruction({
-        data: new Uint8Array([4, answer]),
-        keys: answer ? keyList : keyList.slice(0, 3),
+        data: new Uint8Array([4]),
+        keys: [
+            {isSigner: true, isWritable: false, pubkey: playerId},
+            {isSigner: false, isWritable: true, pubkey: playerAccId},
+            {isSigner: false, isWritable: true, pubkey: opponentAcc},
+            {isSigner: false, isWritable: true, pubkey: gameAcc},
+            {isSigner: false, isWritable: false, pubkey: solanaWeb3.SystemProgram.programId}
+        ],
         programId
     });
 
@@ -115,15 +113,16 @@ export async function makeAMove(boxIdx, gameAcc) {
 }
 
 
-export async function closeGameAccount(gameAcc) {
+export async function closeGameAccount(gameAcc, opponentAcc) {
     const { playerId, playerAccId } = PLAYER;
 
     const ix = new solanaWeb3.TransactionInstruction({
         data: new Uint8Array([6]),
         keys: [
             {isSigner: true, isWritable: false, pubkey: playerId},
-            {isSigner: false, isWritable: false, pubkey: playerAccId},
-            {isSigner: false, isWritable: true, pubkey: gameAcc}
+            {isSigner: false, isWritable: true, pubkey: playerAccId},
+            {isSigner: false, isWritable: true, pubkey: gameAcc},
+            {isSigner: false, isWritable: true, pubkey: opponentAcc}
         ],
         programId
     });

@@ -1,4 +1,4 @@
-import { answerGameInvite } from './chain.mjs';
+import { acceptGameInvite } from './chain.mjs';
 
 const GAME_INVITE_DATA = document.getElementById('gameInviteData');
 const CHALLENGER_NAME = document.getElementById('challengerName');
@@ -6,16 +6,12 @@ const CHALLENGER_ID = document.getElementById('challengerAccId');
 let opponentId;
 
 document.getElementById('acceptChallengeButton').onclick = () => {
-    answerGameInvite(opponentId, 1)
+    acceptGameInvite(opponentId)
     .then(console.log)
     .catch(console.error);
 };
 
-document.getElementById('declineChallengeButton').onclick = () => {
-    answerGameInvite(opponentId, 0)
-    .then(console.log)
-    .catch(console.error);
-};
+document.getElementById('closeChallengeButton').onclick = closeChallengePanel;
 
 
 export function loadChallengePanel(id, name) {

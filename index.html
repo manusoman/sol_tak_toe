@@ -48,7 +48,14 @@
     </section><section>
 
         <div id="gamePanel" class="off">
-            <span id="turnSignal">Your turn</span>
+            <h4>
+                <img src="res/cross.svg"><span id="player1Name"></span><img src="res/circle.svg"><span id="player2Name"></span>
+            </h4>
+
+            <div id="turnSignal">
+                <span>Your turn</span><span>Wait for opponent to move</span>
+            </div>
+
             <table id="gameTable">
                 <tr>
                     <td></td><td></td><td></td>
@@ -60,6 +67,10 @@
                     <td></td><td></td><td></td>
                 </tr>
             </table>
+
+            <div id="gameResult">
+                <h2>You won!</h2><h2>You lost.</h2><button id="closeGameBtn">Close</button>
+            </div>
         </div>
 
         <div id="opponentData" class="off">
@@ -73,7 +84,7 @@
             <h2 id="challengerName"></h2>
             <span id="challengerAccId"></span>
             <button id="acceptChallengeButton">Accept Challenge</button>
-            <button id="declineChallengeButton">Decline Challenge</button>
+            <button id="closeChallengeButton">Close</button>
         </div>
 
     </section>

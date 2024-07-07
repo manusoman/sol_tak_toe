@@ -1,13 +1,18 @@
-import { getGameAccount, getAccDataWithAccAddress, monitorAccount, unMonitorAccount, isSameKey, makeAMove } from './chain.mjs';
+import { getGameAccount, getAccDataWithAccAddress, monitorAccount,
+    unMonitorAccount, isSameKey, makeAMove, closeGameAccount } from './chain.mjs';
 
 const GAME_PANEL = document.getElementById('gamePanel');
+const PLAYER1_NAME = document.getElementById('player1Name');
+const PLAYER2_NAME = document.getElementById('player2Name');
 const TURN_SIGNAL = document.getElementById('turnSignal');
 const GAME_BOARD = document.getElementById('gameTable');
+const GAME_RESULT = document.getElementById('gameResult');
 const GAME_BOXES = Array.from(GAME_BOARD.getElementsByTagName('tr')).map(tr => Array.from(tr.getElementsByTagName('td')));
 const IMAGES = await loadImages(['res/cross.svg', 'res/circle.svg']);
 const GAME = Array(3).fill(true).map(() => Array(3).fill(NaN));
 
 let gameSubScriptionId = null;
+let opponentAccId = null;
 let gameAcc = null;
 let yourTurn;
 let noOfMoves = 0;
@@ -19,32 +24,57 @@ let opponent; // 0 or 1
 GAME_BOXES.forEach((arr, row) => {
     arr.forEach((box, col) => {
         box.onclick = () => {
-            if (yourTurn && gameAcc) {
+            if (!yourTurn || !gameAcc) return;
+
+            if (play(row, col, you)) {
                 ++noOfMoves;
                 makeAMove(col + row * 3, gameAcc);
-                play(row, col, you);
-                evaluateGame(row, col, you);
-                hideTurnSignal();
+                evaluateGame(row, col, you) ? hideTurnSignals() : signalOpponentTurn();                    
+            } else {
+                alert('Invalid move!');
             }
-        }
+        };
     });
 });
 
+document.getElementById('closeGameBtn').onclick = async () => {
+    if (gameAcc) {
+        await closeGameAccount(gameAcc, opponentAccId);
+
+        opponentAccId = null;
+        clearGame();
+
+        GAME_PANEL.className = 'off';        
+        GAME_RESULT.className === 'you' && alert('The bet money has been transfered to your player account.');
+        GAME_RESULT.className = '';
+    }
+};
+
+
 export async function initGame(opponentId, opponentName) {
+    opponentAccId = opponentId;
     gameAcc = getGameAccount(opponentId)[0];
     gameSubScriptionId = monitorAccount(gameAcc, accInfo => updateGame(accInfo.data));
 
     const data = await getAccDataWithAccAddress(gameAcc);
-    const firstPlayer = isSameKey(data.subarray(32, 64), opponentId.toBytes());
+    if (!data) return;
 
-    if (firstPlayer) {
+    if (isSameKey(data.subarray(32, 64), opponentId.toBytes())) {
         you = 0;
         opponent = 1;
-        showTurnSignal();
+
+        PLAYER1_NAME.textContent = 'You';
+        PLAYER2_NAME.textContent = opponentName;
+
+        signalYourTurn();
     } else {
         you = 1;
         opponent = 0;
-        hideTurnSignal();
+
+        PLAYER1_NAME.textContent = opponentName;
+        PLAYER2_NAME.textContent = 'You';
+
+        signalOpponentTurn();
     }
 
     data[64] && updateGame(data);
@@ -68,10 +98,13 @@ function updateGame(data) {
 
             play(row, col, player);
 
-            (i === limit - 1) &&
-            !evaluateGame(row, col, player) &&
-            (player === opponent) ?
-            showTurnSignal() : hideTurnSignal();
+            if (i === limit - 1) {
+                if (evaluateGame(row, col, player)) {
+                    hideTurnSignals();
+                } else {
+                    (player === opponent) ? signalYourTurn() : signalOpponentTurn();
+                }
+            }
         }
 
         noOfMoves = limit;
@@ -87,10 +120,11 @@ function updateGame(data) {
 }
 
 function play(row, col, player) {
-    if (gameSubScriptionId === null || !isNaN(GAME[row][col])) return;
+    if (gameSubScriptionId === null || !isNaN(GAME[row][col])) return false;
     
     GAME[row][col] = player;
     GAME_BOXES[row][col].appendChild(IMAGES[player].cloneNode());
+    return true;
 }
 
 function evaluateGame(row, col, player) {
@@ -135,23 +169,35 @@ function evaluateGame(row, col, player) {
 }
 
 function endGame(player) {
-    hideTurnSignal();
-    alert(player === you ? 'You won!' : 'You lost.');
-    // GAME_PANEL.className = 'off';
-    // clearGame();
-
+    hideTurnSignals();
+    GAME_RESULT.className = player === you ? 'you' : 'opponent';
     unMonitorAccount(gameSubScriptionId);
     gameSubScriptionId = null;
-    gameAcc = null;
 }
 
 function clearGame() {
+    gameAcc = null;
     GAME.length = 0;
 
     GAME_BOXES.forEach(arr => {
         GAME.push(Array(3).fill(NaN));
         arr.forEach(box => box.innerHTML = '');
     });
+}
+
+function signalYourTurn() {
+    yourTurn = true;
+    TURN_SIGNAL.className = 'you';
+}
+
+function signalOpponentTurn() {
+    yourTurn = false;
+    TURN_SIGNAL.className = 'opponent';
+}
+
+function hideTurnSignals() {
+    yourTurn = false;
+    TURN_SIGNAL.className = '';
 }
 
 function loadImages(paths) {
@@ -167,14 +213,4 @@ function loadImages(paths) {
             img.onload = () => (++count === 2) && resolve(images);
         }
     });
-}
-
-function showTurnSignal() {
-    yourTurn = true;
-    TURN_SIGNAL.className = 'show';
-}
-
-function hideTurnSignal() {
-    yourTurn = false;
-    TURN_SIGNAL.className = '';
 }

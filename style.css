@@ -183,19 +183,58 @@ main > section:last-child {
 }
 
 #gamePanel {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#gamePanel.off {
+    display: none;
+}
+
+#gamePanel > h4 > * {
+    vertical-align: middle;
+}
+
+#gamePanel > h4 > img {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+#gamePanel > h4 > span + img {
+    margin-left: 30px;
+}
+
+#gamePanel > h4 > span {
+    line-height: 24px;
 }
 
 #turnSignal {
-    display: inline-block;
-    margin: 20px 0px;
-    padding: 5px 10px;
-    color: transparent;
+    margin: 20px 0px 50px 0px;
+    color: white;
+    opacity: 0;
 }
 
-#turnSignal.show {
-    color: white;
+#turnSignal.you, #turnSignal.opponent {
+    opacity: 1;
+}
+
+#turnSignal :first-child {
+    padding: 5px 10px;
     background-color: #5dc45d;
+}
+
+#turnSignal :nth-child(2) {
+    padding: 5px 10px;
+    background-color: #dc5f5f;
+}
+
+#turnSignal.opponent :first-child {
+    display: none;
+}
+
+#turnSignal.you :nth-child(2) {
+    display: none;
 }
 
 #gameTable {
@@ -219,6 +258,48 @@ main > section:last-child {
 
 #gameTable td > img {
     width: var(--img-size);
+}
+
+#gameResult {
+    margin-top: 40px;
+    opacity: 0;
+    color: white;
+}
+
+#gameResult.you, #gameResult.opponent {
+    opacity: 1;
+}
+
+#gameResult > * {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#gameResult :first-child {
+    padding: 5px 10px;
+    background-color: #5dc45d;
+}
+
+#gameResult :nth-child(2) {
+    padding: 5px 10px;
+    background-color: #dc5f5f;
+}
+
+#gameResult.opponent :first-child {
+    display: none;
+}
+
+#gameResult.you :nth-child(2) {
+    display: none;
+}
+
+#closeGameBtn {
+    margin-left: 20px;
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 5px;
+    background-color: #c5c5c5;
+    cursor: pointer;
 }
 
 #opponentData, #gameInviteData {
