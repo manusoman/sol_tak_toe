@@ -6,7 +6,11 @@ import { PLAYER } from './userProfile.mjs';
 
 const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
 const programId = program.publicKey;
+const PLAYER_ACC_SIZE = 54;
+const CHALLENGE_FEE = 5e8; // 0.5 Sols
 
+
+export const PLAYER_ACC_RENT_EXEMPTION = await connection.getMinimumBalanceForRentExemption(PLAYER_ACC_SIZE);
 
 export function monitorAccount(accId, func) {
     return connection.onAccountChange(accId, func, 'finalized');
@@ -54,11 +58,23 @@ export async function closePlayerAccount() {
 
 
 export async function sendGameInvite(opponentAcc) {
-    const { playerId, playerAccId } = PLAYER;
+    const { playerId, playerAccId, balance } = PLAYER;
+    const tx = new solanaWeb3.Transaction();
+    
     console.log('Sending game invite...');
     console.log('player: ', playerAccId.toBase58());
     console.log('opponent: ', opponentAcc.toBase58());
 
+    if (balance < CHALLENGE_FEE) {
+        tx.add(solanaWeb3.SystemProgram.transfer({
+            fromPubkey: playerId,
+            lamports: CHALLENGE_FEE - balance,
+            toPubkey: playerAccId
+        }));
+
+        console.log(`Transfering ${CHALLENGE_FEE - balance} lamports to your account`);
+    }
+    
     const ix = new solanaWeb3.TransactionInstruction({
         data: new Uint8Array([3]),
         keys: [
@@ -69,14 +85,24 @@ export async function sendGameInvite(opponentAcc) {
         programId
     });
 
-    const tx = new solanaWeb3.Transaction().add(ix);
-    return signAndSend(tx, playerId);
+    return signAndSend(tx.add(ix), playerId);
 }
 
 
 export async function acceptGameInvite(opponentAcc) {
-    const { playerId, playerAccId } = PLAYER;
+    const { playerId, playerAccId, balance } = PLAYER;
     const gameAcc = getGameAccount(opponentAcc)[0];
+    const tx = new solanaWeb3.Transaction();
+
+    if (balance < CHALLENGE_FEE) {
+        tx.add(solanaWeb3.SystemProgram.transfer({
+            fromPubkey: playerId,
+            lamports: CHALLENGE_FEE - balance,
+            toPubkey: playerAccId
+        }));
+
+        console.log(`Transfering ${CHALLENGE_FEE - balance} lamports to your account`);
+    }
 
     const ix = new solanaWeb3.TransactionInstruction({
         data: new Uint8Array([4]),
@@ -90,8 +116,7 @@ export async function acceptGameInvite(opponentAcc) {
         programId
     });
 
-    const tx = new solanaWeb3.Transaction().add(ix);
-    return signAndSend(tx, playerId);
+    return signAndSend(tx.add(ix), playerId);
 }
 
 
@@ -138,7 +163,7 @@ export async function getPlayerAccData(walletAddr) {
     const publicKey = new solanaWeb3.PublicKey(walletAddr);
     const [playerAcc, bumpSeed] = getPlayerAccount(publicKey);
     const res = await connection.getAccountInfo(playerAcc, 'finalized');
-    return [playerAcc, bumpSeed, res?.data];
+    return [playerAcc, bumpSeed, res?.data, res?.lamports];
 }
 
 export async function getAccDataWithAccAddress(playerAcc) {

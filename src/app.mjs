@@ -1,6 +1,6 @@
 import { connectWallet } from './wallet.mjs';
 import { getPlayerAccData, getAccDataWithAccAddress, signUpPlayer, monitorAccount } from './chain.mjs';
-import { loadProfile } from './userProfile.mjs';
+import { loadProfile, updateBalance } from './userProfile.mjs';
 import { loadOpponents } from './opponentPanel.mjs';
 import { loadChallengePanel, closeChallengePanel } from './challengePanel.mjs';
 import { closeOpponentProfile } from './opponentProfile.mjs';
@@ -21,7 +21,7 @@ document.getElementById('walletConnectButton').onclick = async () => {
     console.log('User connected:', playerId.toBase58());
 
     const addr = playerId.toBase58();
-    const [playerAccId, bumpSeed, data] = await getPlayerAccData(addr);
+    const [playerAccId, bumpSeed, data, lamports] = await getPlayerAccData(addr);
 
     LOGIN.className = 'off';
 
@@ -30,7 +30,7 @@ document.getElementById('walletConnectButton').onclick = async () => {
         return;
     }
 
-    loadAccount(playerId, playerAccId, bumpSeed, data);
+    loadAccount(playerId, playerAccId, bumpSeed, data, lamports);
     MAIN.className = '';
 };
 
@@ -58,7 +58,7 @@ SIGN_UP.onsubmit = async e => {
     
     alert('Your account has been created! Enjoy gaming.');
 
-    const [playerAccId, bumpSeed, data] = await getPlayerAccData(playerId.toBase58());
+    const [playerAccId, bumpSeed, data, _] = await getPlayerAccData(playerId.toBase58());
 
     if (!data) {
         const msg = 'Error creating account. Try again after some time';
@@ -74,11 +74,16 @@ SIGN_UP.onsubmit = async e => {
 // Functions ***********************************************
 
 
-function loadAccount(playerId, accId, bumpSeed, data) {
+function loadAccount(playerId, accId, bumpSeed, data, lamports) {
     console.log('Loading acc:', accId.toBase58());
-    loadProfile(playerId, accId, bumpSeed, data);
+    loadProfile(playerId, accId, bumpSeed, data, lamports);
     loadOpponents(accId);
-    monitorAccount(accId, accInfo => trackChanges(accInfo.data));
+
+    monitorAccount(accId, accInfo => {
+        updateBalance(accInfo.lamports);
+        trackChanges(accInfo.data);
+    });
+
     trackChanges(data);
 }
 

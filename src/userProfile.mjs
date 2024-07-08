@@ -1,5 +1,5 @@
 import { putProfilePic } from './imgGenerator.mjs';
-import { closePlayerAccount } from './chain.mjs';
+import { PLAYER_ACC_RENT_EXEMPTION, closePlayerAccount } from './chain.mjs';
 
 const DP = document.getElementById('dp');
 const PROFILE_PIC = document.getElementById('profilePic');
@@ -35,13 +35,14 @@ CLOSE_ACC_BTN.onclick = async () => {
 };
 
 
-export function loadProfile(pId, accId, seed, data) {
+export function loadProfile(pId, accId, seed, data, lamports) {
     const idStr = accId.toBase58();
 
     PLAYER.playerId = pId;
     PLAYER.playerAccId = accId;
     PLAYER.bumpSeed = seed;
 
+    updateBalance(lamports);
     putNameAndPicture(data.slice(0, 20), accId);
     DP.className = '';
     USER_ID.textContent = idStr;
@@ -52,4 +53,8 @@ function putNameAndPicture(data, accID) {
 
     USERNAME.textContent = name.trim();
     putProfilePic(accID.toBytes(), PROFILE_PIC);
+}
+
+export function updateBalance(lamports) {
+    PLAYER.balance = lamports - PLAYER_ACC_RENT_EXEMPTION;
 }

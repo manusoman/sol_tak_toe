@@ -65,16 +65,12 @@ export async function initGame(opponentId, opponentName) {
 
         PLAYER1_NAME.textContent = 'You';
         PLAYER2_NAME.textContent = opponentName;
-
-        signalYourTurn();
     } else {
         you = 1;
         opponent = 0;
 
         PLAYER1_NAME.textContent = opponentName;
         PLAYER2_NAME.textContent = 'You';
-
-        signalOpponentTurn();
     }
 
     data[64] && updateGame(data);
@@ -84,11 +80,11 @@ export async function initGame(opponentId, opponentName) {
 function updateGame(data) {
     const status = data[64];
 
-    console.log('Move detected...');
-    console.log(data);
-
     if (status >= 1) {
-        const limit = status > 9 ? 9 : status;
+        let limit = 9;
+
+        if (status > 9) { while (data[64 + limit] === 0) --limit; }
+        else { limit = status; }
 
         for (let i = noOfMoves; i < limit; ++i) {
             const boxIdx = data[65 + i];
@@ -109,13 +105,13 @@ function updateGame(data) {
 
         noOfMoves = limit;
     }
-    
+
     if (status === 10) {
-
+        endGame('draw');
     } else if (status === 11) {
-
+        endGame(isSameKey(opponentAccId.toBytes(), data.subarray(0, 32)) ? 'opponent' : 'you');        
     } else if (status === 12) {
-
+        endGame(isSameKey(opponentAccId.toBytes(), data.subarray(0, 32)) ? 'you' : 'opponent');  
     }
 }
 
@@ -131,46 +127,39 @@ function evaluateGame(row, col, player) {
     let rowSum = 0;
     let colSum = 0;
 
-    for (let i = 0; i < 3; ++i) {
-        rowSum += GAME[row][i];
-        colSum += GAME[i][col];
-    }
-
-    if (rowSum === player * 3) {
-        endGame(player);
-        return true;
-    }
-    
-    if (colSum === player * 3) {
-        endGame(player);
-        return true;
-    }
-
-    // Diagonal sum
+    // Diagonal sums
     let d1Sum = 0;
     let d2Sum = 0;
 
     for (let i = 0; i < 3; ++i) {
+        rowSum += GAME[row][i];
+        colSum += GAME[i][col];
+
         d1Sum += GAME[i][i];
         d2Sum += GAME[2 - i][i];
     }
 
+    if (rowSum === player * 3) {
+        return true;
+    }
+    
+    if (colSum === player * 3) {
+        return true;
+    }
+
     if (d1Sum === player * 3) {
-        endGame(player);
         return true;
     }
     
     if (d2Sum === player * 3) {
-        endGame(player);
         return true;
     }
 
     return false;
 }
 
-function endGame(player) {
-    hideTurnSignals();
-    GAME_RESULT.className = player === you ? 'you' : 'opponent';
+function endGame(whoWon) {
+    GAME_RESULT.className = whoWon;
     unMonitorAccount(gameSubScriptionId);
     gameSubScriptionId = null;
 }

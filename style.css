@@ -266,7 +266,7 @@ main > section:last-child {
     color: white;
 }
 
-#gameResult.you, #gameResult.opponent {
+#gameResult.you, #gameResult.opponent, #gameResult.draw {
     opacity: 1;
 }
 
@@ -285,11 +285,20 @@ main > section:last-child {
     background-color: #dc5f5f;
 }
 
-#gameResult.opponent :first-child {
+#gameResult :nth-child(3) {
+    padding: 5px 10px;
+    background-color: #707070;
+}
+
+#gameResult.opponent :first-child, #gameResult.opponent :nth-child(3) {
     display: none;
 }
 
-#gameResult.you :nth-child(2) {
+#gameResult.you :nth-child(2), #gameResult.you :nth-child(3) {
+    display: none;
+}
+
+#gameResult.draw :first-child, #gameResult.draw :nth-child(2) {
     display: none;
 }
 
