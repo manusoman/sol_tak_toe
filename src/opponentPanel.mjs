@@ -1,11 +1,11 @@
-import { getOnlinePlayers, isSameKey } from './chain.mjs';
+import { getPlayers, isSameKey } from './chain.mjs';
 import { putProfilePic } from './imgGenerator.mjs';
 import { loadOpponentProfile } from './opponentProfile.mjs';
 
 const OPPONENT_LIST = document.getElementById('opponentList');
 
 export async function loadOpponents(playerAccId) {
-    const players = await getOnlinePlayers();
+    const players = await getPlayers();
     const myId = playerAccId.toBytes();
     let shouldCompare = true;
 

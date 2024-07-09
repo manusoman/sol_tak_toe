@@ -109,8 +109,7 @@ header > a > img {
 #challengeButton,
 #acceptChallengeButton,
 #declineChallengeButton,
-#closeAccBtn,
-#disconnectBtn {
+#closeAccBtn {
     margin-top: 20px;
     padding: 16px 26px;
     font-size: 16px;
@@ -311,12 +310,54 @@ main > section:last-child {
     cursor: pointer;
 }
 
-#opponentData, #gameInviteData {
+#opponentData {
     text-align: center;
 }
 
-#opponentData > span, #gameInviteData > span {
+#opponentData > span {
     display: block;
     margin: 10px 0px 20px 0px;
     font-size: 13px;
+}
+
+#gameInviteData {
+    padding: 0px 30px;
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+#challengeList {
+    padding: 30px 0px;
+}
+
+#challengeList > li {
+    display: flex;
+    padding: 14px 0px;
+}
+
+#challengeList > li > img {
+    margin-right: 10px;
+    width: 28px;
+    height: 28px;
+}
+
+#challengeList > li > div {
+    width: 380px;
+}
+
+#challengeList > li > div > * {
+    display: block;
+}
+
+#challengeList > li > div > span {
+    font-size: 13px;
+    color: gray;
+}
+
+#challengeList > li > button {
+    padding: 10px 20px;
+    border-radius: 7px;
+    border: 1px solid #d0d0d0;
+    cursor: pointer;
 }

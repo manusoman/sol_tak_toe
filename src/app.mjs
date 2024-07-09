@@ -1,10 +1,7 @@
 import { connectWallet } from './wallet.mjs';
-import { getPlayerAccData, getAccDataWithAccAddress, signUpPlayer, monitorAccount } from './chain.mjs';
-import { loadProfile, updateBalance } from './userProfile.mjs';
+import { getPlayerAccData, signUpPlayer, confirmSignature } from './chain.mjs';
+import { loadProfile } from './userProfile.mjs';
 import { loadOpponents } from './opponentPanel.mjs';
-import { loadChallengePanel, closeChallengePanel } from './challengePanel.mjs';
-import { closeOpponentProfile } from './opponentProfile.mjs';
-import { initGame } from './game.mjs';
 
 const LOGIN = document.getElementById('login');
 const SIGN_UP = document.getElementById('signup');
@@ -50,7 +47,8 @@ SIGN_UP.onsubmit = async e => {
     }
 
     try {
-        await signUpPlayer(playerId, name);
+        const sx = await signUpPlayer(playerId, name);
+        await confirmSignature(sx);
     } catch (err) {
         alert('Error creating account. Try again after some time');
         throw err;
@@ -78,43 +76,4 @@ function loadAccount(playerId, accId, bumpSeed, data, lamports) {
     console.log('Loading acc:', accId.toBase58());
     loadProfile(playerId, accId, bumpSeed, data, lamports);
     loadOpponents(accId);
-
-    monitorAccount(accId, accInfo => {
-        updateBalance(accInfo.lamports);
-        trackChanges(accInfo.data);
-    });
-
-    trackChanges(data);
-}
-
-function trackChanges(data) {
-    const opponentId = new solanaWeb3.PublicKey(data.subarray(22));
-
-    switch (data[21]) {
-        case 0:
-            closeOpponentProfile();
-            closeChallengePanel();
-            break;
-
-        case 1:
-            getPlayerName(opponentId)
-            .then(opponentName => loadChallengePanel(opponentId, opponentName));
-            break;
-
-        case 3:
-            closeOpponentProfile();
-            closeChallengePanel();
-
-            getPlayerName(opponentId)
-            .then(opponentName => initGame(opponentId, opponentName));
-            break;
-        
-        default:
-    }
-}
-
-async function getPlayerName(accId) {
-    const accData = await getAccDataWithAccAddress(accId);
-    const name = new TextDecoder().decode(accData.slice(0, 20));
-    return name.trim();
 }
