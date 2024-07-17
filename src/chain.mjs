@@ -8,7 +8,7 @@ const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'))
 const programId = program.publicKey;
 const PLAYER_ACC_SIZE = 53;
 const CHALLENGE_ACC_SIZE = 72;
-const CHALLENGE_FEE = 5e8; // 0.5 Sols
+const GAME_SHARE = 5e8; // 0.5 Sols
 
 
 export const PLAYER_ACC_RENT_EXEMPTION = await connection.getMinimumBalanceForRentExemption(PLAYER_ACC_SIZE);
@@ -66,14 +66,14 @@ export async function sendGameInvite(opponentAcc) {
     console.log('player: ', playerAccId.toBase58());
     console.log('opponent: ', opponentAcc.toBase58());
 
-    if (balance < CHALLENGE_FEE) {
+    if (balance < GAME_SHARE) {
         tx.add(solanaWeb3.SystemProgram.transfer({
             fromPubkey: playerId,
-            lamports: CHALLENGE_FEE - balance,
+            lamports: GAME_SHARE - balance,
             toPubkey: playerAccId
         }));
 
-        console.log(`Transfering ${CHALLENGE_FEE - balance} lamports to your account`);
+        console.log(`Transfering ${GAME_SHARE - balance} lamports to your account`);
     }
 
     const [challengeAcc, challengeAccSeed] = getChallengeAccount(playerAccId, opponentAcc);
@@ -84,37 +84,7 @@ export async function sendGameInvite(opponentAcc) {
             {isSigner: true, isWritable: false, pubkey: playerId},
             {isSigner: false, isWritable: true, pubkey: playerAccId},
             {isSigner: false, isWritable: true, pubkey: opponentAcc},
-            {isSigner: false, isWritable: true, pubkey: challengeAcc}
-        ],
-        programId
-    });
-
-    return signAndSend(tx.add(ix), playerId);
-}
-
-
-export async function acceptGameInvite(opponentAcc) {
-    const { playerId, playerAccId, balance } = PLAYER;
-    const gameAcc = getGameAccount(opponentAcc)[0];
-    const tx = new solanaWeb3.Transaction();
-
-    if (balance < CHALLENGE_FEE) {
-        tx.add(solanaWeb3.SystemProgram.transfer({
-            fromPubkey: playerId,
-            lamports: CHALLENGE_FEE - balance,
-            toPubkey: playerAccId
-        }));
-
-        console.log(`Transfering ${CHALLENGE_FEE - balance} lamports to your account`);
-    }
-
-    const ix = new solanaWeb3.TransactionInstruction({
-        data: new Uint8Array([4]),
-        keys: [
-            {isSigner: true, isWritable: false, pubkey: playerId},
-            {isSigner: false, isWritable: true, pubkey: playerAccId},
-            {isSigner: false, isWritable: true, pubkey: opponentAcc},
-            {isSigner: false, isWritable: true, pubkey: gameAcc},
+            {isSigner: false, isWritable: true, pubkey: challengeAcc},
             {isSigner: false, isWritable: false, pubkey: solanaWeb3.SystemProgram.programId}
         ],
         programId
@@ -124,11 +94,44 @@ export async function acceptGameInvite(opponentAcc) {
 }
 
 
-export async function makeAMove(boxIdx, gameAcc) {
-    const { playerId, playerAccId } = PLAYER;
+export async function acceptGameInvite(opponentAccId, challengeId) {
+    const { playerId, playerAccId, bumpSeed, balance } = PLAYER;
+    const [gameAcc, gameAccBumpSeed] = getGameAccount(challengeId);
+    const tx = new solanaWeb3.Transaction();
+
+    if (balance < GAME_SHARE) {
+        tx.add(solanaWeb3.SystemProgram.transfer({
+            fromPubkey: playerId,
+            lamports: GAME_SHARE - balance,
+            toPubkey: playerAccId
+        }));
+
+        console.log(`Transfering ${GAME_SHARE - balance} lamports to your account`);
+    }
+    const keys = [
+        {isSigner: true, isWritable: false, pubkey: playerId},
+        {isSigner: false, isWritable: true, pubkey: playerAccId},
+        {isSigner: false, isWritable: true, pubkey: challengeId},
+        {isSigner: false, isWritable: true, pubkey: gameAcc},
+        {isSigner: false, isWritable: true, pubkey: opponentAccId},
+        {isSigner: false, isWritable: false, pubkey: solanaWeb3.SystemProgram.programId}
+    ];
 
     const ix = new solanaWeb3.TransactionInstruction({
-        data: new Uint8Array([5, boxIdx]),
+        data: new Uint8Array([bumpSeed, 4, gameAccBumpSeed]),
+        keys,
+        programId
+    });
+
+    return signAndSend(tx.add(ix), playerId);
+}
+
+
+export async function makeAMove(boxIdx, gameAcc) {
+    const { playerId, playerAccId, bumpSeed } = PLAYER;
+
+    const ix = new solanaWeb3.TransactionInstruction({
+        data: new Uint8Array([bumpSeed, 5, boxIdx]),
         keys: [
             {isSigner: true, isWritable: false, pubkey: playerId},
             {isSigner: false, isWritable: false, pubkey: playerAccId},
@@ -143,10 +146,10 @@ export async function makeAMove(boxIdx, gameAcc) {
 
 
 export async function closeGameAccount(gameAcc, opponentAcc) {
-    const { playerId, playerAccId } = PLAYER;
+    const { playerId, playerAccId, bumpSeed } = PLAYER;
 
     const ix = new solanaWeb3.TransactionInstruction({
-        data: new Uint8Array([6]),
+        data: new Uint8Array([bumpSeed, 6]),
         keys: [
             {isSigner: true, isWritable: false, pubkey: playerId},
             {isSigner: false, isWritable: true, pubkey: playerAccId},
@@ -175,7 +178,7 @@ export async function getAccDataWithAccAddress(playerAcc) {
     return res?.data;
 }
 
-export function getGameAccount(challengeAcc) {
+function getGameAccount(challengeAcc) {
     return solanaWeb3.PublicKey.findProgramAddressSync(
         [challengeAcc.toBytes(), new TextEncoder().encode('game')],
         programId
@@ -214,22 +217,6 @@ function getChallengeAccount(playerAccId, opponentAcc) {
     );
 }
 
-function getGameAccountSeeds(acc1, acc2) {
-    const seed1 = acc1.toBytes();
-    const seed2 = acc2.toBytes();
-
-    for (let i = 0; i < 32; ++i) {
-        if (seed1[i] < seed2[i]) {
-            return [seed1, seed2];
-        }
-        if (seed1[i] > seed2[i]) {
-            return [seed2, seed1];
-        }
-    }
-
-    throw 'Both wallets are the same';
-}
-
 export async function getPlayers() {
     const accounts = await connection.getProgramAccounts(programId, {
         commitment: 'finalized',
@@ -263,7 +250,7 @@ export async function getChallenges() {
         return {
             challengeId: info.pubkey,
             opponent: new solanaWeb3.PublicKey(data.subarray(32, 64)),
-            timestamp: parseInt(new DataView(data).getBigUint64(64))
+            timestamp: parseInt(new DataView(data.buffer).getBigUint64(64))
         };
     }).toSorted((a, b) => a.timestamp - b.timestamp);
     
@@ -272,8 +259,8 @@ export async function getChallenges() {
 
     return opponentAccountInfos.map((info, i) => {
         return {
-            name: decoder.decode(info.account.data.subarray(0, 20)),
-            opponent: info.pubkey,
+            name: decoder.decode(info.data.subarray(0, 20)),
+            opponent: pubKeys[i],
             challengeId: temp[i].challengeId,
             timestamp: temp[i].timestamp
         }

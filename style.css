@@ -55,16 +55,26 @@ header > a > img {
     top: 0px;
     bottom: 0px;
     right: var(--padding);
-    background-color: transparent;
-    cursor: pointer;
 }
 
-#dp > img {
+#dp > * {
     display: inline-block;
     vertical-align: middle;
 }
 
-#dp > span {
+#dpBtn {
+    margin-left: 30px;
+    height: 100%;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#dpBtn > img {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#dpBtn > span {
     display: inline-block;
     vertical-align: middle;
     font-weight: bold;

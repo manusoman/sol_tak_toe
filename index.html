@@ -9,19 +9,22 @@
     <link rel="stylesheet" href="style.css">
     <script src="lib/buffer.js"></script>
     <script>window.Buffer = window.buffer.Buffer;</script>
-    <script src="lib/index.iife.min.js" defer></script>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js" defer></script>
+    <!-- <script src="lib/index.iife.min.js" defer></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/base-58@0.0.1/Base58.min.js" defer></script> -->
     <script src="lib/Base58.min.js" defer></script>
-    <!-- <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/base-58@0.0.1/Base58.min.js" defer></script> -->
     <script src="src/app.mjs" type="module"></script>
 </head>
 <body>
 
 <header>
     <a href="http://localhost:3000/"><img src="res/Sol-Tac-Toe.svg" alt="Site logo"></a>
-    <button id="dp" class="off">
-        <img id="profilePic" class="dpPic" alt="Profile picture"><span id="username"></span>
-    </button>
+    <div id="dp" class="off">
+        <div><h3 id="solBalance"></h3></div>
+        <button id="dpBtn">
+            <img id="profilePic" class="dpPic" alt="Profile picture"><span id="username"></span>
+        </button>
+    </div>
 
     <div id="profileData" class="off">
         <div>

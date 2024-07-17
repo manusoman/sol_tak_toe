@@ -1,10 +1,11 @@
 import { putProfilePic } from './imgGenerator.mjs';
 import { PLAYER_ACC_RENT_EXEMPTION, getAccDataWithAccAddress, closePlayerAccount, monitorAccount } from './chain.mjs';
 import { populateChallenges, clearChallenges } from './challengePanel.mjs';
-import { closeOpponentProfile } from './opponentProfile.mjs';
 import { initGame } from './game.mjs';
 
 const DP = document.getElementById('dp');
+const SOL_BALANCE = document.getElementById('solBalance');
+const DP_BTN = document.getElementById('dpBtn');
 const PROFILE_PIC = document.getElementById('profilePic');
 const USERNAME = document.getElementById('username');
 
@@ -13,10 +14,9 @@ const USER_ID = document.getElementById('userId');
 const CLOSE_ACC_BTN = document.getElementById('closeAccBtn');
 
 export const PLAYER = {};
-let currentInviteCount = 0;
 
 
-DP.onclick = () => {
+DP_BTN.onclick = () => {
     PROFILE_DATA.className = '';
 };
 
@@ -39,6 +39,7 @@ CLOSE_ACC_BTN.onclick = async () => {
 
 
 export function updateBalance(lamports) {
+    SOL_BALANCE.textContent = Math.round(lamports * 100 / 1e9) / 100;
     PLAYER.balance = lamports - PLAYER_ACC_RENT_EXEMPTION;
 }
 
@@ -63,36 +64,19 @@ export function loadProfile(pId, accId, seed, data, lamports) {
 }
 
 async function trackChanges(data) {
+    const temp = data.subarray(21);
+
+    for (let i = 0; i < 32; ++i) {
+        if (temp[i]) {
+            initGame(new solanaWeb3.PublicKey(temp));
+            return;
+        }
+    }
+
     if (data[20]) {
         populateChallenges();
     } else {
         clearChallenges();
-    }
-}
-
-function trackChanges_old(data) {
-    const opponentId = new solanaWeb3.PublicKey(data.subarray(22));
-
-    switch (data[20]) {
-        case 0:
-            closeOpponentProfile();
-            closeChallengePanel();
-            break;
-
-        case 1:
-            getPlayerName(opponentId)
-            .then(opponentName => loadChallengePanel(opponentId, opponentName));
-            break;
-
-        case 3:
-            closeOpponentProfile();
-            closeChallengePanel();
-
-            getPlayerName(opponentId)
-            .then(opponentName => initGame(opponentId, opponentName));
-            break;
-        
-        default:
     }
 }
 

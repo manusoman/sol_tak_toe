@@ -56,7 +56,7 @@ SIGN_UP.onsubmit = async e => {
     
     alert('Your account has been created! Enjoy gaming.');
 
-    const [playerAccId, bumpSeed, data, _] = await getPlayerAccData(playerId.toBase58());
+    const [playerAccId, bumpSeed, data, lamports] = await getPlayerAccData(playerId.toBase58());
 
     if (!data) {
         const msg = 'Error creating account. Try again after some time';
@@ -64,7 +64,7 @@ SIGN_UP.onsubmit = async e => {
         throw msg;
     }
 
-    loadAccount(playerId, playerAccId, bumpSeed, data);
+    loadAccount(playerId, playerAccId, bumpSeed, data, lamports);
     SIGN_UP.className = 'off';
     MAIN.className = '';
 };
