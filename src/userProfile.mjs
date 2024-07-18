@@ -1,6 +1,7 @@
 import { putProfilePic } from './imgGenerator.mjs';
-import { PLAYER_ACC_RENT_EXEMPTION, getAccDataWithAccAddress, closePlayerAccount, monitorAccount } from './chain.mjs';
-import { populateChallenges, clearChallenges } from './challengePanel.mjs';
+import { PLAYER_ACC_RENT_EXEMPTION, closePlayerAccount,
+    monitorAccount, withdrawBalance, lamportsToSols } from './chain.mjs';
+import { populateChallenges, clearChallenges, showChallengePanel } from './challengePanel.mjs';
 import { initGame } from './game.mjs';
 
 const DP = document.getElementById('dp');
@@ -11,14 +12,14 @@ const USERNAME = document.getElementById('username');
 
 const PROFILE_DATA = document.getElementById('profileData');
 const USER_ID = document.getElementById('userId');
+const WITHDRAW_BALANCE_BTN = document.getElementById('withDrawBlnc');
 const CLOSE_ACC_BTN = document.getElementById('closeAccBtn');
 
 export const PLAYER = {};
+let ongoingGame = false;
 
 
-DP_BTN.onclick = () => {
-    PROFILE_DATA.className = '';
-};
+DP_BTN.onclick = () => PROFILE_DATA.className = '';
 
 PROFILE_DATA.onclick = e => {
     if (e.target === PROFILE_DATA) {
@@ -26,20 +27,24 @@ PROFILE_DATA.onclick = e => {
     }
 };
 
-CLOSE_ACC_BTN.onclick = async () => {
-    try {
-        let res = await closePlayerAccount();
+WITHDRAW_BALANCE_BTN.onclick = () => {
+    withdrawBalance().then(() => {
+        alert('Balance has been withdrawn');
+        PROFILE_DATA.className = 'off';
+    }).catch(console.error);
+};
+
+CLOSE_ACC_BTN.onclick = () => {
+    closePlayerAccount().then(() => {
         console.log(res);
         PROFILE_DATA.className = 'off';
         alert('Your account has been closed');
-    } catch (err) {
-        console.error(err);
-    }
+    }).catch(console.error);
 };
 
 
 export function updateBalance(lamports) {
-    SOL_BALANCE.textContent = Math.round(lamports * 100 / 1e9) / 100;
+    SOL_BALANCE.textContent = lamportsToSols(lamports);
     PLAYER.balance = lamports - PLAYER_ACC_RENT_EXEMPTION;
 }
 
@@ -59,25 +64,31 @@ export function loadProfile(pId, accId, seed, data, lamports) {
         updateBalance(accInfo.lamports);
         trackChanges(accInfo.data);
     });
-
+    
+    showChallengePanel();
     trackChanges(data);
 }
 
-async function trackChanges(data) {
+function trackChanges(data) {
     const temp = data.subarray(21);
 
-    for (let i = 0; i < 32; ++i) {
-        if (temp[i]) {
-            initGame(new solanaWeb3.PublicKey(temp));
-            return;
+    if (!ongoingGame) {
+        for (let i = 0; i < 32; ++i) {
+            if (temp[i]) {
+                ongoingGame = true;
+
+                initGame(new solanaWeb3.PublicKey(temp))
+                .then(() => {
+                    ongoingGame = false;
+                    showChallengePanel();
+                });
+                
+                return;
+            }
         }
     }
 
-    if (data[20]) {
-        populateChallenges();
-    } else {
-        clearChallenges();
-    }
+    data[20] ? populateChallenges() : clearChallenges();
 }
 
 function putNameAndPicture(data, accID) {
@@ -85,10 +96,4 @@ function putNameAndPicture(data, accID) {
 
     USERNAME.textContent = name.trim();
     putProfilePic(accID.toBytes(), PROFILE_PIC);
-}
-
-async function getPlayerName(accId) {
-    const accData = await getAccDataWithAccAddress(accId);
-    const name = new TextDecoder().decode(accData.slice(0, 20));
-    return name.trim();
 }

@@ -29,6 +29,7 @@
     <div id="profileData" class="off">
         <div>
             <span id="userId"></span>
+            <button id="withDrawBlnc">Withdraw Balance</button>
             <button id="closeAccBtn">Close Account</button>
         </div>
     </div>
@@ -75,25 +76,21 @@
             </div>
         </div>
 
-        <div id="opponentData" class="off">
+        <form id="opponentData" class="off">
             <h2 id="opponentName"></h2>
             <span id="opponentAccId"></span>
-            <button id="challengeButton">Challenge</button>
-        </div>
+            <label for="stakeIdx">Stake</label>
+            <select name="stakeIdx" id="stakeIdx">
+                <option value="0" selected>0.5 Sol</option>
+                <option value="1">1 Sol</option>
+                <option value="2">2 Sols</option>
+            </select><br>
+            <input type="submit" value="Challenge">
+        </form>
 
         <div id="gameInviteData" class="off">
             <h2>Challenges</h2>
-            <ul id="challengeList">
-                <!-- <li>
-                    <img>
-                    <div>
-                        <h3>Manu Soman</h3>
-                        <span>AqdPQ6iqDX3hdABJVbJV6VnS2UMngn875TMfiDw5dhg2</span>
-                        <span>Apr 2024 | 10:00</span>
-                    </div>
-                    <button>Accept Challenge</button>
-                </li> -->
-            </ul>
+            <ul id="challengeList"></ul>
         </div>
 
     </section>

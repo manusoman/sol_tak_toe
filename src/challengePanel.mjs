@@ -1,4 +1,4 @@
-import { getChallenges, acceptGameInvite } from './chain.mjs';
+import { getChallenges, acceptGameInvite, lamportsToSols } from './chain.mjs';
 import { putProfilePic } from './imgGenerator.mjs';
 
 const GAME_INVITE_DATA = document.getElementById('gameInviteData');
@@ -12,7 +12,7 @@ export async function populateChallenges() {
         CHALLENGE_LIST.removeChild(child);
     }
 
-    for (const {challengeId, name, opponent, timestamp} of challenges) {
+    for (const {challengeId, name, opponent, stake, timestamp} of challenges) {
         const li = document.createElement('li');
         const img = new Image();
         const div = document.createElement('div');
@@ -25,10 +25,10 @@ export async function populateChallenges() {
         h3.textContent = name;
         span1.textContent = opponent.toBase58();
         span2.textContent = timestamp;
-        button.textContent = 'Accept Challenge';
+        button.textContent = `Accept Challenge [${lamportsToSols(stake)} Sols]`;
         
         button.onclick = () => {
-            acceptGameInvite(opponent, challengeId)
+            acceptGameInvite(opponent, challengeId, stake)
             .then(sx => {
                 CHALLENGE_LIST.removeChild(li);
                 console.log(sx);
@@ -46,12 +46,14 @@ export async function populateChallenges() {
 
         CHALLENGE_LIST.appendChild(li);
     }
-
-    GAME_INVITE_DATA.className = '';
 }
 
 export function clearChallenges() {
     CHALLENGE_LIST.innerHTML = '';
+}
+
+export function showChallengePanel() {
+    GAME_INVITE_DATA.className = '';
 }
 
 export function closeChallengePanel() {

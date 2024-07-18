@@ -1,5 +1,6 @@
 import { PLAYER } from './userProfile.mjs';
 import { closeOpponentProfile } from './opponentProfile.mjs';
+import { closeChallengePanel } from './challengePanel.mjs';
 import { getAccDataWithAccAddress, monitorAccount, unMonitorAccount,
     isSameKey, makeAMove, closeGameAccount } from './chain.mjs';
 
@@ -22,6 +23,8 @@ let yourTurn;
 let idxYou;
 let idxOpponent;
 
+let endSignal;
+
 
 GAME_BOXES.forEach((arr, row) => arr.forEach((box, col) => {
     box.onclick = () => {
@@ -33,6 +36,7 @@ GAME_BOXES.forEach((arr, row) => arr.forEach((box, col) => {
 document.getElementById('closeGameBtn').onclick = async () => {
     if (gameAcc) {
         await closeGameAccount(gameAcc, opponentAccId);
+        endSignal();
         clearGame();
     }    
 };
@@ -40,6 +44,7 @@ document.getElementById('closeGameBtn').onclick = async () => {
 
 export async function initGame(gameId) {
     closeOpponentProfile();
+    closeChallengePanel();
 
     const playerAccId_bytes = PLAYER.playerAccId.toBytes();
     const data = await getAccDataWithAccAddress(gameId);
@@ -74,6 +79,8 @@ export async function initGame(gameId) {
 
     updateGame(data);
     GAME_PANEL.className = '';
+
+    return new Promise(resolve => endSignal = resolve);
 }
 
 function updateGame(data) {
@@ -126,6 +133,7 @@ function clearGame() {
     gameAcc = null;
     GAME.length = 0;
     noOfMoves = 0;
+    endSignal = null;
 
     GAME_BOXES.forEach(arr => {
         GAME.push(Array(3).fill(NaN));

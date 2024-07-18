@@ -7,8 +7,8 @@ import { PLAYER } from './userProfile.mjs';
 const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
 const programId = program.publicKey;
 const PLAYER_ACC_SIZE = 53;
-const CHALLENGE_ACC_SIZE = 72;
-const GAME_SHARE = 5e8; // 0.5 Sols
+const CHALLENGE_ACC_SIZE = 73;
+const STAKES = [5e8, 1e9, 2e9];
 
 
 export const PLAYER_ACC_RENT_EXEMPTION = await connection.getMinimumBalanceForRentExemption(PLAYER_ACC_SIZE);
@@ -58,28 +58,29 @@ export async function closePlayerAccount() {
 }
 
 
-export async function sendGameInvite(opponentAcc) {
+export async function sendGameInvite(opponentAcc, stakeIdx) {
     const { playerId, playerAccId, bumpSeed, balance } = PLAYER;
+    const stake = STAKES[stakeIdx];
     const tx = new solanaWeb3.Transaction();
     
     console.log('Sending game invite...');
     console.log('player: ', playerAccId.toBase58());
     console.log('opponent: ', opponentAcc.toBase58());
 
-    if (balance < GAME_SHARE) {
+    if (balance < stake) {
         tx.add(solanaWeb3.SystemProgram.transfer({
             fromPubkey: playerId,
-            lamports: GAME_SHARE - balance,
+            lamports: stake - balance,
             toPubkey: playerAccId
         }));
 
-        console.log(`Transfering ${GAME_SHARE - balance} lamports to your account`);
+        console.log(`Transfering ${stake - balance} lamports to your account`);
     }
 
     const [challengeAcc, challengeAccSeed] = getChallengeAccount(playerAccId, opponentAcc);
     
     const ix = new solanaWeb3.TransactionInstruction({
-        data: new Uint8Array([bumpSeed, 3, challengeAccSeed]),
+        data: new Uint8Array([bumpSeed, 3, challengeAccSeed, stakeIdx]),
         keys: [
             {isSigner: true, isWritable: false, pubkey: playerId},
             {isSigner: false, isWritable: true, pubkey: playerAccId},
@@ -94,19 +95,19 @@ export async function sendGameInvite(opponentAcc) {
 }
 
 
-export async function acceptGameInvite(opponentAccId, challengeId) {
+export async function acceptGameInvite(opponentAccId, challengeId, stake) {
     const { playerId, playerAccId, bumpSeed, balance } = PLAYER;
     const [gameAcc, gameAccBumpSeed] = getGameAccount(challengeId);
     const tx = new solanaWeb3.Transaction();
 
-    if (balance < GAME_SHARE) {
+    if (balance < stake) {
         tx.add(solanaWeb3.SystemProgram.transfer({
             fromPubkey: playerId,
-            lamports: GAME_SHARE - balance,
+            lamports: stake - balance,
             toPubkey: playerAccId
         }));
 
-        console.log(`Transfering ${GAME_SHARE - balance} lamports to your account`);
+        console.log(`Transfering ${stake - balance} lamports to your account`);
     }
     const keys = [
         {isSigner: true, isWritable: false, pubkey: playerId},
@@ -164,7 +165,26 @@ export async function closeGameAccount(gameAcc, opponentAcc) {
 }
 
 
+export async function withdrawBalance() {
+    const { playerId, playerAccId, bumpSeed } = PLAYER;
+
+    const ix = new solanaWeb3.TransactionInstruction({
+        data: new Uint8Array([bumpSeed, 7]),
+        keys: [
+            {isSigner: true, isWritable: false, pubkey: playerId},
+            {isSigner: false, isWritable: true, pubkey: playerAccId}
+        ],
+        programId
+    });
+
+    const tx = new solanaWeb3.Transaction().add(ix);
+    return signAndSend(tx, playerId);
+}
+
+
 // Utility functions ****************************************
+
+export const lamportsToSols = lamports => Math.round(lamports * 100 / 1e9) / 100;
 
 export async function getPlayerAccData(walletAddr) {
     const publicKey = new solanaWeb3.PublicKey(walletAddr);
@@ -250,7 +270,8 @@ export async function getChallenges() {
         return {
             challengeId: info.pubkey,
             opponent: new solanaWeb3.PublicKey(data.subarray(32, 64)),
-            timestamp: parseInt(new DataView(data.buffer).getBigUint64(64))
+            stake: STAKES[data[64]],
+            timestamp: parseInt(new DataView(data.buffer).getBigUint64(65))
         };
     }).toSorted((a, b) => a.timestamp - b.timestamp);
     
@@ -262,6 +283,7 @@ export async function getChallenges() {
             name: decoder.decode(info.data.subarray(0, 20)),
             opponent: pubKeys[i],
             challengeId: temp[i].challengeId,
+            stake: temp[i].stake,
             timestamp: temp[i].timestamp
         }
     });

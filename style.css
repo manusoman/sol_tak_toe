@@ -106,7 +106,20 @@ header > a > img {
 }
 
 #userId {
+    margin-bottom: 14px;
     font-size: 12px;
+}
+
+#profileData > div > button {
+    padding: 16px 16px;
+    width: 160px;
+    text-align: left;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#profileData > div > button:hover {
+    background-color: #e0e0e0;
 }
 
 #login, #signup {
@@ -116,10 +129,9 @@ header > a > img {
 
 #login > button,
 #signup > input[type="submit"],
-#challengeButton,
+#opponentData > input[type="submit"],
 #acceptChallengeButton,
-#declineChallengeButton,
-#closeAccBtn {
+#declineChallengeButton {
     margin-top: 20px;
     padding: 16px 26px;
     font-size: 16px;
@@ -330,6 +342,15 @@ main > section:last-child {
     font-size: 13px;
 }
 
+#opponentData > select {
+    padding: 5px 10px;
+    margin: 10px 0px 20px 10px;
+    font-size: 20px;
+    border-radius: 5px;
+    background-color: #d0d0d0;
+    cursor: pointer;
+}
+
 #gameInviteData {
     padding: 0px 30px;
     width: 100%;
@@ -339,6 +360,14 @@ main > section:last-child {
 
 #challengeList {
     padding: 30px 0px;
+}
+
+#challengeList:empty:after {
+    content: 'You have no challenges';
+    padding: 20px 20px;
+    display: block;
+    border-radius: 5px;
+    background-color: #dcdcdc;
 }
 
 #challengeList > li {
