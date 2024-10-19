@@ -1,0 +1,402 @@
+:root {
+    --header-height: 60px;
+    --box-size: 80px;
+    --img-size: 46px;
+    --border: 5px solid #c0c0c0;
+    --padding: 30px;
+}
+
+.off {
+    display: none;
+}
+
+img.dpPic {
+    width: 28px;
+    height: 28px;
+    overflow: hidden;
+}
+
+* {
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    font-size: 16px;
+    background-color: #ededed;
+}
+
+header {
+    position: relative;
+    padding: 0px var(--padding);
+    height: var(--header-height);
+    border-bottom: 2px solid #d5d5d5;
+}
+
+header > * {
+    display: inline-block;
+}
+
+header > a > img {
+    position: absolute;
+    margin: auto 0px;
+    height: 36px;
+    top: 0px;
+    bottom: 0px;
+}
+
+#dp {
+    position: absolute;
+    margin: auto 0px;
+    height: 30px;
+    top: 0px;
+    bottom: 0px;
+    right: var(--padding);
+}
+
+#dp > * {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#dpBtn {
+    margin-left: 30px;
+    height: 100%;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#dpBtn > img {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#dpBtn > span {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+#profileData {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background-color: #fff0;
+    z-index: 1;
+}
+
+#profileData > div {
+    position: absolute;
+    padding: 20px;
+    top: var(--header-height);
+    right: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 5px 16px #0003;
+}
+
+#profileData > div > * {
+    display: block;
+}
+
+#userId {
+    margin-bottom: 14px;
+    font-size: 12px;
+}
+
+#profileData > div > button {
+    padding: 16px 16px;
+    width: 160px;
+    text-align: left;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+#profileData > div > button:hover {
+    background-color: #e0e0e0;
+}
+
+#login, #signup {
+    padding: 200px 0px;
+    text-align: center;
+}
+
+#login > button,
+#signup > input[type="submit"],
+#opponentData > input[type="submit"],
+#acceptChallengeButton,
+#declineChallengeButton {
+    margin-top: 20px;
+    padding: 16px 26px;
+    font-size: 16px;
+    border-radius: 5px;
+    color: white;
+    background-color: black;
+    cursor: pointer;
+}
+#signup > input[type="text"] {
+    margin-top: 20px;
+    margin-right: 14px;
+    padding: 16px 14px;
+    width: 280px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #c0c0c0;
+}
+
+main {
+    position: absolute;
+    display: flex;
+    width: 100%;
+    top: var(--header-height);
+    bottom: 0px;
+}
+
+#online {
+    width: 360px;
+    border-right: 1px solid #d5d5d5;
+    overflow-y: scroll;
+}
+
+main > section:last-child {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+#online > span {
+    display: block;
+    margin: 20px var(--padding) 5px var(--padding);
+    font-weight: bold;
+    font-size: 13px;
+    color: #404040;
+}
+
+#opponentList {
+    list-style: none;
+}
+
+#opponentList > li {
+    font-size: 14px;
+    padding: 8px var(--padding);
+    color: #808080;
+    cursor: pointer;
+}
+
+#opponentList > li:hover {
+    color: black;
+}
+
+#opponentList > li > * {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#opponentList > li > img {
+    margin-right: 10px;
+}
+
+#gamePanel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#gamePanel.off {
+    display: none;
+}
+
+#gamePanel > h4 > * {
+    vertical-align: middle;
+}
+
+#gamePanel > h4 > img {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+#gamePanel > h4 > span + img {
+    margin-left: 30px;
+}
+
+#gamePanel > h4 > span {
+    line-height: 24px;
+}
+
+#turnSignal {
+    margin: 20px 0px 50px 0px;
+    color: white;
+    opacity: 0;
+}
+
+#turnSignal.you, #turnSignal.opponent {
+    opacity: 1;
+}
+
+#turnSignal :first-child {
+    padding: 5px 10px;
+    background-color: #5dc45d;
+}
+
+#turnSignal :nth-child(2) {
+    padding: 5px 10px;
+    background-color: #dc5f5f;
+}
+
+#turnSignal.opponent :first-child {
+    display: none;
+}
+
+#turnSignal.you :nth-child(2) {
+    display: none;
+}
+
+#gameTable {
+    border-collapse: collapse;
+}
+
+#gameTable td {
+    width: var(--box-size);
+    height: var(--box-size);
+    text-align: center;
+    cursor: pointer;
+}
+
+#gameTable td + td {
+    border-left: var(--border);
+}
+
+#gameTable tr + tr {
+    border-top: var(--border);
+}
+
+#gameTable td > img {
+    width: var(--img-size);
+}
+
+#gameResult {
+    margin-top: 40px;
+    opacity: 0;
+    color: white;
+}
+
+#gameResult.you, #gameResult.opponent, #gameResult.draw {
+    opacity: 1;
+}
+
+#gameResult > * {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#gameResult :first-child {
+    padding: 5px 10px;
+    background-color: #5dc45d;
+}
+
+#gameResult :nth-child(2) {
+    padding: 5px 10px;
+    background-color: #dc5f5f;
+}
+
+#gameResult :nth-child(3) {
+    padding: 5px 10px;
+    background-color: #707070;
+}
+
+#gameResult.opponent :first-child, #gameResult.opponent :nth-child(3) {
+    display: none;
+}
+
+#gameResult.you :nth-child(2), #gameResult.you :nth-child(3) {
+    display: none;
+}
+
+#gameResult.draw :first-child, #gameResult.draw :nth-child(2) {
+    display: none;
+}
+
+#closeGameBtn {
+    margin-left: 20px;
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 5px;
+    background-color: #c5c5c5;
+    cursor: pointer;
+}
+
+#opponentData {
+    text-align: center;
+}
+
+#opponentData > span {
+    display: block;
+    margin: 10px 0px 20px 0px;
+    font-size: 13px;
+}
+
+#opponentData > select {
+    padding: 5px 10px;
+    margin: 10px 0px 20px 10px;
+    font-size: 20px;
+    border-radius: 5px;
+    background-color: #d0d0d0;
+    cursor: pointer;
+}
+
+#gameInviteData {
+    padding: 0px 30px;
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+#challengeList {
+    padding: 30px 0px;
+}
+
+#challengeList:empty:after {
+    content: 'You have no challenges';
+    padding: 20px 20px;
+    display: block;
+    border-radius: 5px;
+    background-color: #dcdcdc;
+}
+
+#challengeList > li {
+    display: flex;
+    padding: 14px 0px;
+}
+
+#challengeList > li > img {
+    margin-right: 10px;
+    width: 28px;
+    height: 28px;
+}
+
+#challengeList > li > div {
+    width: 380px;
+}
+
+#challengeList > li > div > * {
+    display: block;
+}
+
+#challengeList > li > div > span {
+    font-size: 13px;
+    color: gray;
+}
+
+#challengeList > li > button {
+    padding: 10px 20px;
+    border-radius: 7px;
+    border: 1px solid #d0d0d0;
+    cursor: pointer;
+}
